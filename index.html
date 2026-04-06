@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APK Store — Download Android Apps</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .hero-glow {
+      position: absolute;
+      width: 600px;
+      height: 300px;
+      background: radial-gradient(ellipse, rgba(0,255,136,0.08) 0%, transparent 70%);
+      top: 0; left: 50%; transform: translateX(-50%);
+      pointer-events: none;
+    }
+    .featured-section { padding: 0 24px; margin-bottom: 40px; }
+    .main-section { padding: 0 24px 60px; }
+    .search-section { padding: 0 24px; margin-bottom: 32px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+    .app-card-list { display: flex; flex-direction: column; gap: 12px; }
+    .app-card-row { display: flex; align-items: center; gap: 16px; padding: 16px 20px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; transition: var(--transition); }
+    .app-card-row:hover { border-color: rgba(0,255,136,0.3); transform: translateX(4px); }
+    .app-card-row .app-icon { width: 52px; height: 52px; flex-shrink: 0; }
+    .app-card-row .app-meta { flex: 1; }
+    .app-card-row .app-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+    /* Detail Modal App Info */
+    .detail-hero { display: flex; gap: 20px; align-items: flex-start; margin-bottom: 24px; }
+    .detail-icon { width: 80px; height: 80px; border-radius: 18px; flex-shrink: 0; }
+    .detail-name { font-size: 1.4rem; font-weight: 800; margin-bottom: 6px; }
+    .detail-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .detail-field { background: var(--surface2); border-radius: 8px; padding: 12px; }
+    .detail-field label { font-size: 0.72rem; color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+    .detail-field p { font-family: 'Space Mono', monospace; font-size: 0.85rem; margin-top: 4px; }
+    .detail-desc { color: var(--text-dim); line-height: 1.7; font-size: 0.9rem; margin-bottom: 20px; }
+    .detail-changelog { background: var(--surface2); border-left: 3px solid var(--accent); padding: 14px; border-radius: 0 8px 8px 0; margin-bottom: 20px; }
+    .detail-changelog h4 { font-size: 0.82rem; color: var(--accent); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .detail-changelog p { font-size: 0.875rem; color: var(--text-dim); }
+
+    /* View Toggle */
+    .view-toggle { display: flex; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+    .view-btn { padding: 8px 12px; border: none; background: none; color: var(--text-dim); cursor: pointer; transition: var(--transition); }
+    .view-btn.active { background: var(--accent); color: #000; }
+
+    /* No APK hint */
+    .no-apk-hint { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.3); border-radius: 8px; padding: 10px 14px; font-size: 0.8rem; color: var(--accent3); text-align: center; }
+  </style>
+</head>
+<body>
+
+<!-- ══ NAVBAR ══ -->
+<nav class="navbar">
+  <a href="index.html" class="logo">
+    <div class="logo-icon">📦</div>
+    APK<span style="color:var(--text)">Store</span>
+  </a>
+  <div class="nav-actions">
+    <span id="app-count-badge" style="font-family:'Space Mono',monospace;font-size:0.75rem;color:var(--text-dim)"></span>
+    <a href="admin.html" class="btn btn-secondary btn-sm">🔐 Admin</a>
+  </div>
+</nav>
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-badge">🤖 Android APK Distribution Platform</div>
+  <h1>Download <span>Trusted</span><br>Android Apps</h1>
+  <p>Browse, search and download APKs directly. Safe, fast and always up-to-date.</p>
+</section>
+
+<!-- ══ SEARCH ══ -->
+<div class="search-section">
+  <div class="search-wrap" style="flex:1;max-width:500px">
+    <span class="icon">🔍</span>
+    <input type="text" class="search-input" id="search-input" placeholder="Search apps, package names..." />
+  </div>
+  <div class="view-toggle">
+    <button class="view-btn active" id="grid-btn" title="Grid view">⊞</button>
+    <button class="view-btn" id="list-btn" title="List view">☰</button>
+  </div>
+</div>
+
+<!-- ══ FILTER CHIPS ══ -->
+<div style="padding:0 24px;margin-bottom:24px">
+  <div class="filter-chips" id="filter-chips"></div>
+</div>
+
+<!-- ══ FEATURED ══ -->
+<section class="featured-section" id="featured-section">
+  <div class="section-header">
+    <h2 class="section-title">⭐ Featured Apps</h2>
+  </div>
+  <div class="apps-grid" id="featured-grid"></div>
+</section>
+
+<!-- ══ ALL APPS ══ -->
+<section class="main-section">
+  <div class="section-header">
+    <h2 class="section-title" id="section-label">All Apps</h2>
+    <span id="results-count" style="font-size:0.82rem;color:var(--text-dim);font-family:'Space Mono',monospace"></span>
+  </div>
+  <div id="apps-container"></div>
+</section>
+
+<!-- ══ APP DETAIL MODAL ══ -->
+<div class="modal-backdrop" id="detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 style="font-weight:800">App Details</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-content"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+      <button class="btn btn-primary btn-lg" id="modal-download-btn">⬇ Download APK</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div id="toast-container"></div>
+
+<script src="db.js"></script>
+<script src="user.js"></script>
+</body>
+</html>
