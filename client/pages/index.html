@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>APK Store - Discover Amazing Apps</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">📱 APK Store</a>
+            <div class="nav-links">
+                <a href="/">Home</a>
+                <a href="/pages/admin.html">Admin</a>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="search-container">
+        <div class="search-box">
+            <input type="text" id="searchInput" class="search-input" placeholder="Search apps...">
+            <button id="searchBtn" class="search-btn">Search</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div id="featuredApps"></div>
+        
+        <div class="categories" id="categories"></div>
+        
+        <div id="appGrid" class="app-grid"></div>
+        
+        <div id="pagination" class="pagination"></div>
+    </div>
+    
+    <script src="/js/main.js"></script>
+</body>
+</html>
