@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>APK Store — Admin Panel</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Login Screen ── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+    }
+
+    .login-glow {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .login-logo .shield {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .login-logo h2 {
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+
+    .login-logo p {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    /* ── Manage Apps Table ── */
+    .app-row-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: var(--surface2);
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .app-row-icon img { width: 100%; height: 100%; object-fit: cover; }
+
+    /* ── Upload Progress ── */
+    #upload-progress-wrap { display: none; }
+    #upload-progress-wrap.show { display: block; }
+
+    /* ── Password Modal ── */
+    .section-divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 24px 0;
+    }
+
+    /* Tab Nav */
+    .tab-nav { display: flex; gap: 4px; background: var(--surface2); border-radius: 10px; padding: 4px; margin-bottom: 24px; border: 1px solid var(--border); width: fit-content; }
+    .tab-btn { padding: 8px 20px; border-radius: 7px; border: none; background: none; color: var(--text-dim); font-family: 'Syne', sans-serif; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: var(--transition); }
+    .tab-btn.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Stats grid */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+
+    /* Featured toggle */
+    .toggle-wrap { display: flex; align-items: center; gap: 10px; }
+    .toggle { width: 40px; height: 22px; background: var(--border); border-radius: 11px; cursor: pointer; position: relative; transition: var(--transition); border: none; }
+    .toggle::after { content: ''; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: var(--transition); }
+    .toggle.on { background: var(--accent); }
+    .toggle.on::after { transform: translateX(18px); }
+  </style>
+</head>
+<body>
+
+<!-- ══ LOGIN SCREEN ══ -->
+<div id="login-screen">
+  <div class="login-glow"></div>
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="shield">🔐</span>
+      <h2>Admin Panel</h2>
+      <p>APKStore — Secure Access Only</p>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Admin Password</label>
+      <input type="password" class="form-input" id="admin-pass-input" placeholder="Enter password..." onkeydown="if(event.key==='Enter')doLogin()" />
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px" onclick="doLogin()">
+      🔑 Login to Admin
+    </button>
+    <p style="text-align:center;margin-top:16px;font-size:0.8rem;color:var(--text-dim)">
+      Default password: <code style="color:var(--accent)">admin@123</code>
+    </p>
+    <hr class="section-divider">
+    <a href="index.html" class="btn btn-ghost" style="width:100%;justify-content:center">← Back to Store</a>
+    <div id="login-error" style="margin-top:12px;color:var(--danger);font-size:0.85rem;text-align:center;display:none">
+      ❌ Wrong password. Try again.
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMIN LAYOUT ══ -->
+<div class="admin-layout" id="admin-panel" style="display:none">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon" style="width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">📦</div>
+      APKStore Admin
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" id="nav-dashboard" onclick="showTab('dashboard')">
+        📊 Dashboard
+      </button>
+      <button class="nav-item" id="nav-apps" onclick="showTab('apps')">
+        📱 Manage Apps
+      </button>
+      <button class="nav-item" id="nav-upload" onclick="showTab('upload')">
+        ⬆ Upload APK
+      </button>
+      <button class="nav-item" id="nav-settings" onclick="showTab('settings')">
+        ⚙️ Settings
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a href="index.html" class="btn btn-ghost" style="width:100%;justify-content:flex-start;margin-bottom:8px">
+        🏪 View Store
+      </a>
+      <button class="btn btn-danger" style="width:100%;justify-content:flex-start" onclick="doLogout()">
+        🚪 Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="admin-main">
+    <div class="admin-topbar">
+      <div>
+        <h1 style="font-size:1.2rem;font-weight:800" id="page-title">Dashboard</h1>
+        <p style="font-size:0.8rem;color:var(--text-dim);margin-top:2px" id="page-subtitle">Overview of your APK store</p>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary" onclick="showTab('upload')">⬆ Upload New APK</button>
+      </div>
+    </div>
+
+    <div class="admin-content">
+
+      <!-- ══ DASHBOARD TAB ══ -->
+      <div class="tab-panel active" id="tab-dashboard">
+        <div class="stats-grid" id="stats-grid"></div>
+
+        <div class="section-header" style="margin-bottom:16px">
+          <h2 class="section-title">Recent Uploads</h2>
+        </div>
+        <div class="table-wrap">
+          <table id="recent-table">
+            <thead>
+              <tr>
+                <th>App</th>
+                <th>Category</th>
+                <th>Version</th>
+                <th>Size</th>
+                <th>Downloads</th>
+                <th>Uploaded</th>
+              </tr>
+            </thead>
+            <tbody id="recent-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ MANAGE APPS TAB ══ -->
+      <div class="tab-panel" id="tab-apps">
+        <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+          <div class="search-wrap" style="flex:1;max-width:360px">
+            <span class="icon">🔍</span>
+            <input type="text" class="search-input" id="admin-search" placeholder="Search apps..." oninput="renderManageTable()" />
+          </div>
+          <select class="form-select" style="width:auto" id="admin-cat-filter" onchange="renderManageTable()">
+            <option value="All">All Categories</option>
+          </select>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>App</th>
+                <th>Version</th>
+                <th>Size</th>
+                <th>Downloads</th>
+                <th>Featured</th>
+                <th>APK</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="manage-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ══ UPLOAD TAB ══ -->
+      <div class="tab-panel" id="tab-upload">
+        <div style="max-width:640px">
+          <div class="form-group">
+            <label class="form-label">APK File *</label>
+            <div class="upload-zone" id="apk-upload-zone">
+              <input type="file" accept=".apk" id="apk-file-input" onchange="handleApkFile(this)" />
+              <div class="upload-icon">📦</div>
+              <div class="upload-text">
+                <strong>Click to select APK</strong> or drag & drop<br>
+                <span style="font-size:0.78rem;color:var(--text-dim);font-family:'Space Mono',monospace">.apk files only • Max 100MB</span>
+              </div>
+            </div>
+
+            <!-- Progress -->
+            <div id="upload-progress-wrap">
+              <div style="display:flex;justify-content:space-between;margin-top:10px;font-size:0.8rem;color:var(--text-dim)">
+                <span id="apk-file-name"></span>
+                <span id="apk-file-size"></span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+            <div class="form-group">
+              <label class="form-label">App Name *</label>
+              <input type="text" class="form-input" id="f-name" placeholder="MyApp" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Package Name *</label>
+              <input type="text" class="form-input" id="f-package" placeholder="com.example.app" style="font-family:'Space Mono',monospace;font-size:0.82rem" />
+            </div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+            <div class="form-group">
+              <label class="form-label">Version *</label>
+              <input type="text" class="form-input" id="f-version" placeholder="1.0.0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Version Code</label>
+              <input type="number" class="form-input" id="f-version-code" placeholder="10" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Category *</label>
+              <select class="form-select" id="f-category">
+                <option value="">Select...</option>
+                <option>Tools</option><option>Productivity</option><option>Photography</option>
+                <option>Music</option><option>Finance</option><option>Education</option>
+                <option>Entertainment</option><option>Social</option><option>Games</option>
+                <option>Health</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">App Icon (Emoji or paste image URL)</label>
+            <div style="display:flex;gap:10px">
+              <input type="text" class="form-input" id="f-icon-emoji" placeholder="📱 Emoji (e.g., 🎮)" style="width:140px;font-size:1.4rem;text-align:center" />
+              <input type="text" class="form-input" id="f-icon-url" placeholder="Or paste icon image URL..." style="flex:1" oninput="previewIcon()" />
+              <div id="icon-preview" style="width:48px;height:48px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0">📱</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Description *</label>
+            <textarea class="form-textarea" id="f-desc" placeholder="Describe what this app does, its key features, and who it's for..." style="min-height:110px"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">What's New / Changelog</label>
+            <textarea class="form-textarea" id="f-changelog" placeholder="What changed in this version?" style="min-height:70px"></textarea>
+          </div>
+
+          <div class="form-group">
+            <div class="toggle-wrap">
+              <button class="toggle" id="f-featured-toggle" onclick="this.classList.toggle('on')"></button>
+              <label class="form-label" style="margin:0;cursor:pointer" onclick="document.getElementById('f-featured-toggle').classList.toggle('on')">
+                Mark as Featured App
+              </label>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px">
+            <button class="btn btn-primary btn-lg" style="flex:1;justify-content:center" onclick="submitUpload()">
+              ⬆ Upload & Publish App
+            </button>
+            <button class="btn btn-secondary" onclick="clearUploadForm()">Clear</button>
+          </div>
+
+          <div id="upload-error" style="margin-top:12px;color:var(--danger);font-size:0.85rem;display:none"></div>
+        </div>
+      </div>
+
+      <!-- ══ SETTINGS TAB ══ -->
+      <div class="tab-panel" id="tab-settings">
+        <div style="max-width:480px">
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:20px">Change Admin Password</h3>
+          <div class="form-group">
+            <label class="form-label">Current Password</label>
+            <input type="password" class="form-input" id="s-current-pass" placeholder="Current password" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">New Password</label>
+            <input type="password" class="form-input" id="s-new-pass" placeholder="New password (min 6 chars)" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm New Password</label>
+            <input type="password" class="form-input" id="s-confirm-pass" placeholder="Repeat new password" />
+          </div>
+          <button class="btn btn-primary" onclick="changePassword()">🔑 Change Password</button>
+
+          <hr class="section-divider">
+
+          <h3 style="font-size:1rem;font-weight:700;margin-bottom:16px">Data Management</h3>
+          <button class="btn btn-secondary" onclick="exportData()" style="margin-bottom:10px;width:100%;justify-content:flex-start">📤 Export All Apps (JSON)</button>
+          <div>
+            <label class="form-label">Import Apps JSON</label>
+            <div class="upload-zone" style="padding:20px">
+              <input type="file" accept=".json" onchange="importData(this)" />
+              <div style="font-size:0.85rem;color:var(--text-dim)">📂 Click to import JSON backup</div>
+            </div>
+          </div>
+
+          <hr class="section-divider">
+
+          <button class="btn btn-danger" onclick="if(confirm('Delete ALL apps? This cannot be undone!')) { localStorage.removeItem(\'apkstore_apps\'); DB.init(); renderDashboard(); renderManageTable(); Utils.toast(\'All apps deleted\', \'error\'); }">
+            🗑 Delete All Apps
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /admin-content -->
+  </div><!-- /admin-main -->
+</div><!-- /admin-layout -->
+
+<!-- ══ EDIT MODAL ══ -->
+<div class="modal-backdrop" id="edit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 style="font-weight:800">Edit App</h3>
+      <button class="btn btn-ghost btn-icon" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="form-group">
+          <label class="form-label">App Name</label>
+          <input type="text" class="form-input" id="e-name" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Package</label>
+          <input type="text" class="form-input" id="e-package" style="font-family:'Space Mono',monospace;font-size:0.8rem" />
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="form-group">
+          <label class="form-label">Version</label>
+          <input type="text" class="form-input" id="e-version" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <select class="form-select" id="e-category">
+            <option>Tools</option><option>Productivity</option><option>Photography</option>
+            <option>Music</option><option>Finance</option><option>Education</option>
+            <option>Entertainment</option><option>Social</option><option>Games</option>
+            <option>Health</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" id="e-desc"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Changelog</label>
+        <textarea class="form-textarea" id="e-changelog" style="min-height:70px"></textarea>
+      </div>
+      <div class="form-group">
+        <div class="toggle-wrap">
+          <button class="toggle" id="e-featured"></button>
+          <label class="form-label" style="margin:0" onclick="document.getElementById('e-featured').classList.toggle('on')">Featured App</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEdit()">💾 Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="db.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
