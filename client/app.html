@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+    <title>App Details</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+    <link rel="stylesheet" href="assets/css/responsive.css">
+</head>
+<body>
+    <div id="app">
+        <div id="navbar-container"></div>
+        
+        <main class="app-detail-container">
+            <div class="container">
+                <div class="app-header">
+                    <img id="app-icon" src="" alt="App Icon" class="app-icon-large">
+                    <div class="app-info">
+                        <h1 id="app-title"></h1>
+                        <p id="app-developer"></p>
+                        <div class="app-rating">
+                            <span class="stars" id="app-stars"></span>
+                            <span id="app-rating-count"></span>
+                        </div>
+                        <div class="app-meta">
+                            <span id="app-category"></span>
+                            <span id="app-size"></span>
+                            <span id="app-version"></span>
+                        </div>
+                    </div>
+                    <button id="install-btn" class="install-button">Install</button>
+                </div>
+                
+                <div class="app-content">
+                    <div class="app-screenshots" id="app-screenshots">
+                        <!-- Screenshots carousel -->
+                    </div>
+                    
+                    <div class="app-description">
+                        <h2>About this app</h2>
+                        <p id="app-description"></p>
+                    </div>
+                    
+                    <div class="app-permissions">
+                        <h2>Permissions Required</h2>
+                        <ul id="app-permissions-list"></ul>
+                    </div>
+                    
+                    <div class="app-details-table">
+                        <h2>App Information</h2>
+                        <table>
+                            <tr><td>Package Name</td><td id="app-package"></td></tr>
+                            <tr><td>Version</td><td id="app-version-detail"></td></tr>
+                            <tr><td>Updated</td><td id="app-updated"></td></tr>
+                            <tr><td>Size</td><td id="app-size-detail"></td></tr>
+                            <tr><td>Installs</td><td id="app-installs"></td></tr>
+                            <tr><td>Required OS</td><td id="app-os-version"></td></tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Related Apps -->
+                <div id="related-apps-container"></div>
+            </div>
+        </main>
+        
+        <div id="footer-container"></div>
+    </div>
+    
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/app.js"></script>
+    <script src="assets/js/install.js"></script>
+    <script src="assets/js/related.js"></script>
+</body>
+</html>
