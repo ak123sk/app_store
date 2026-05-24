@@ -1,68 +1,24 @@
-# Security headers
-<IfModule mod_headers.c>
-    Header set X-Content-Type-Options "nosniff"
-    Header set X-Frame-Options "SAMEORIGIN"
-    Header set X-XSS-Protection "1; mode=block"
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
-    Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
-</IfModule>
-
-# Disable directory listing
 Options -Indexes
 
-# Protect sensitive files
-<FilesMatch "\.(json|log|sql|env)$">
+<FilesMatch "\.(json|log)$">
     Order allow,deny
     Deny from all
 </FilesMatch>
 
-# Allow only specific PHP files
-<FilesMatch "^(upload|process_apk|screenshots_manager)\.php$">
+<FilesMatch "^(upload|process_data|index)\.php$">
     Order allow,deny
     Allow from all
 </FilesMatch>
 
-# Block access to hidden files
-<FilesMatch "^\.">
-    Order allow,deny
-    Deny from all
-</FilesMatch>
-
-# APK files protection
 <FilesMatch "\.apk$">
-    # Force download
     Header set Content-Disposition "attachment"
-    Header set X-Content-Type-Options "nosniff"
-    
-    # Only allow from your domain
-    SetEnvIf Referer "yourdomain\.com" allowed_referer
-    Order deny,allow
-    Deny from all
-    Allow from env=allowed_referer
+    Order allow,deny
+    Allow from all
 </FilesMatch>
 
-# Enable compression
-<IfModule mod_deflate.c>
-    AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json
-</IfModule>
-
-# Cache control
-<IfModule mod_expires.c>
-    ExpiresActive On
-    ExpiresByType image/png "access plus 1 month"
-    ExpiresByType image/jpeg "access plus 1 month"
-    ExpiresByType application/javascript "access plus 1 week"
-    ExpiresByType text/css "access plus 1 week"
-</IfModule>
-
-# Prevent access to includes
 RewriteEngine On
-RewriteRule ^(includes|logs|temp)/ - [F,L]
+RewriteRule ^apk/file/(.*)$ index.php?action=get_apk&file=$1 [L,QSA]
+RewriteRule ^apk/logo/(.*)$ index.php?action=get_logo&file=$1 [L,QSA]
 
-# PHP settings
-<IfModule mod_php7.c>
-    php_value upload_max_filesize 100M
-    php_value post_max_size 100M
-    php_value max_execution_time 300
-    php_value max_input_time 300
-</IfModule>
+php_value upload_max_filesize 100M
+php_value post_max_size 100M
